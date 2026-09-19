@@ -20,6 +20,31 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: One-time Telegram test
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python3 - <<'PY'
+          import json, os, urllib.parse, urllib.request
+          token = os.environ["TELEGRAM_BOT_TOKEN"]
+          chat_id = os.environ["TELEGRAM_CHAT_ID"]
+          data = urllib.parse.urlencode({
+              "chat_id": chat_id,
+              "text": "✅ İTÜ CRN 10752 takip botu çalışıyor. SNT 114E — Contemporary Art artık izleniyor.",
+          }).encode()
+          req = urllib.request.Request(
+              f"https://api.telegram.org/bot{token}/sendMessage",
+              data=data,
+              method="POST",
+          )
+          with urllib.request.urlopen(req, timeout=30) as r:
+              result = json.loads(r.read().decode())
+          if not result.get("ok"):
+              raise SystemExit(result)
+          print("Telegram test message sent successfully.")
+          PY
+
       - name: Check CRN 10752 / SNT 114E
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
